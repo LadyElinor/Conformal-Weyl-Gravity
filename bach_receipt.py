@@ -28,151 +28,18 @@ Usage: python3 bach_receipt_v2.py [mk|sds|trunc|bad|frw|all]
 """
 import sys
 import time
-import random
 import sympy as sp
-from itertools import product
+
+from conformal_probe.core.geometry import (
+    N_DIMENSIONS,
+    DiagMetric,
+    sample_points,
+    simplify_expr as S,
+)
 
 t, r, th, ph = sp.symbols('t r theta phi', real=True)
 beta, gam, k, Lam = sp.symbols('beta gamma kappa Lambda', real=True)
-n = 4
-random.seed(20260708)
-
-
-def S(e):
-    return sp.cancel(sp.together(sp.expand(e)))
-
-
-class DiagMetric:
-    """Curvature machinery for a diagonal metric over given coordinates."""
-
-    def __init__(self, gdiag, coords):
-        self.coords = coords
-        self.g = {(i, i): gdiag[i] for i in range(n)}
-        self.gi = {(i, i): S(1 / gdiag[i]) for i in range(n)}
-        self._build()
-
-    def gd(self, a, b):
-        return self.g.get((a, b), sp.Integer(0))
-
-    def gu(self, a, b):
-        return self.gi.get((a, b), sp.Integer(0))
-
-    def _build(self):
-        c = self.coords
-        self.Gam = {}
-        for a, b, d in product(range(n), repeat=3):
-            if b > d:
-                continue
-            e = sum(self.gu(a, f) * (sp.diff(self.gd(f, b), c[d])
-                                     + sp.diff(self.gd(f, d), c[b])
-                                     - sp.diff(self.gd(b, d), c[f]))
-                    for f in range(n)) / 2
-            e = S(e)
-            if e != 0:
-                self.Gam[(a, b, d)] = e
-                self.Gam[(a, d, b)] = e
-
-        G = lambda a, b, d: self.Gam.get((a, b, d), sp.Integer(0))
-        self.G = G
-
-        self.Riem = {}
-        for a, b, cc, d in product(range(n), repeat=4):
-            if cc >= d:
-                continue
-            e = (sp.diff(G(a, b, d), c[cc]) - sp.diff(G(a, b, cc), c[d])
-                 + sum(G(a, cc, f) * G(f, b, d) - G(a, d, f) * G(f, b, cc)
-                       for f in range(n)))
-            e = S(e)
-            if e != 0:
-                self.Riem[(a, b, cc, d)] = e
-                self.Riem[(a, b, d, cc)] = -e
-        Rm = lambda a, b, cc, d: self.Riem.get((a, b, cc, d), sp.Integer(0))
-
-        self.Ric = {}
-        for b, d in product(range(n), repeat=2):
-            e = S(sum(Rm(a, b, a, d) for a in range(n)))
-            if e != 0:
-                self.Ric[(b, d)] = e
-        self.Rc = lambda b, d: self.Ric.get((b, d), sp.Integer(0))
-        self.Rs = S(sum(self.gu(a, a) * self.Rc(a, a) for a in range(n)))
-
-        # Weyl tensor, canonical nonzero components (all indices down)
-        self.Weyl = {}
-        for a, b, cc, d in product(range(n), repeat=4):
-            if a >= b or cc >= d or (a, b) > (cc, d):
-                continue
-            rabcd = sum(self.gd(a, f) * Rm(f, b, cc, d) for f in range(n))
-            e = (rabcd
-                 - sp.Rational(1, 2) * (self.gd(a, cc) * self.Rc(b, d)
-                                        - self.gd(a, d) * self.Rc(b, cc)
-                                        + self.gd(b, d) * self.Rc(a, cc)
-                                        - self.gd(b, cc) * self.Rc(a, d))
-                 + self.Rs / 6 * (self.gd(a, cc) * self.gd(b, d)
-                                  - self.gd(a, d) * self.gd(b, cc)))
-            e = S(e)
-            if e != 0:
-                self.Weyl[(a, b, cc, d)] = e
-
-    def C(self, a, b, cc, d):
-        sgn = 1
-        if a > b:
-            a, b, sgn = b, a, -sgn
-        if cc > d:
-            cc, d, sgn = d, cc, -sgn
-        if a == b or cc == d:
-            return sp.Integer(0)
-        if (a, b) > (cc, d):
-            a, b, cc, d = cc, d, a, b
-        return sgn * self.Weyl.get((a, b, cc, d), sp.Integer(0))
-
-    def bach(self, a, b, memo):
-        """B_ab = 2 D^m D^n C_{mabn} + C_{mabn} R^{mn}  (cited definition).
-        Returns (raw_expr, simplified_expr)."""
-        c, G, C = self.coords, self.G, self.C
-
-        def DC(e, i, j, kk, l):
-            key = (e, i, j, kk, l)
-            if key in memo:
-                return memo[key]
-            ex = (sp.diff(C(i, j, kk, l), c[e])
-                  - sum(G(f, e, i) * C(f, j, kk, l) for f in range(n))
-                  - sum(G(f, e, j) * C(i, f, kk, l) for f in range(n))
-                  - sum(G(f, e, kk) * C(i, j, f, l) for f in range(n))
-                  - sum(G(f, e, l) * C(i, j, kk, f) for f in range(n)))
-            ex = S(ex)
-            memo[key] = ex
-            return ex
-
-        def DDC(f, e, i, j, kk, l):
-            ex = (sp.diff(DC(e, i, j, kk, l), c[f])
-                  - sum(G(h, f, e) * DC(h, i, j, kk, l) for h in range(n))
-                  - sum(G(h, f, i) * DC(e, h, j, kk, l) for h in range(n))
-                  - sum(G(h, f, j) * DC(e, i, h, kk, l) for h in range(n))
-                  - sum(G(h, f, kk) * DC(e, i, j, h, l) for h in range(n))
-                  - sum(G(h, f, l) * DC(e, i, j, kk, h) for h in range(n)))
-            return S(ex)
-
-        # D^m D^n C_{mabn} = g^{mm} g^{nn} D_m D_n C_{mabn} (diagonal metric)
-        term1 = 2 * sum(self.gu(m, m) * self.gu(nn, nn) * DDC(m, nn, m, a, b, nn)
-                        for m in range(n) for nn in range(n))
-        term2 = sum(self.gu(m, m) * self.gu(nn, nn) * self.Rc(m, nn)
-                    * C(m, a, b, nn) for m in range(n) for nn in range(n))
-        raw = term1 + term2
-        return raw, sp.simplify(S(raw))
-
-
-def sample_points(symbols_in_expr):
-    """Three exact rational sample points for numerical cross-check (Fix 4)."""
-    pts = []
-    for _ in range(3):
-        subs = {r: sp.Rational(random.randint(3, 40), random.randint(1, 4)),
-                th: sp.pi / random.choice([3, 4, 6]),
-                beta: sp.Rational(random.randint(1, 9), 100),
-                gam: sp.Rational(random.randint(1, 9), 1000),
-                k: sp.Rational(random.randint(1, 9), 10000),
-                Lam: sp.Rational(random.randint(1, 9), 10000)}
-        pts.append({s: v for s, v in subs.items() if s in symbols_in_expr or s in (r, th)})
-    return pts
+n = N_DIMENSIONS
 
 
 def run_case(name, gdiag, coords, expect_pass, check_trace=False):
@@ -187,7 +54,7 @@ def run_case(name, gdiag, coords, expect_pass, check_trace=False):
             raw, simp = M.bach(a, b, memo)
             results[(a, b)] = simp
             # Fix 4: exact-point evaluation of the RAW expression
-            for pt in sample_points(all_syms):
+            for pt in sample_points(all_syms, r, th, beta, gam, k, Lam):
                 val = sp.cancel(raw.subs(pt))
                 sym_zero = (simp == 0)
                 num_zero = (val == 0)
