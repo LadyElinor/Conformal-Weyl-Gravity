@@ -139,9 +139,12 @@ is nonzero in proportion to gamma itself. CONTROLLING CLAIM (canonical phrasing)
 mass generation on this fixed background, the invariant rotation
 observable associated with the admitted profile is the SdS diagnostic and
 the gamma*r/2 support cancels. This does NOT yet establish a coupled
-metric-plus-scalar solution, uniqueness of the scalar profile, or source-
-independence of the derived quartic coupling; in the present construction
-lambda depends explicitly on beta. The disputed premise -- Mannheim's
+metric-plus-scalar solution, because the probe currently checks the scalar
+field equation on a fixed MK background rather than the full coupled
+gravity-plus-matter equations. It also does NOT yet establish uniqueness
+of the scalar profile or source-independence of the derived quartic
+coupling; in the present construction lambda depends explicitly on beta.
+The disputed premise -- Mannheim's
 position that S is microscopic, varying only within particle interiors --
 is stated, cited (GRG 54, 99, 2022), and NOT adjudicated. Clocks, rods,
 and spectral-line bookkeeping beyond the worldline level remain future

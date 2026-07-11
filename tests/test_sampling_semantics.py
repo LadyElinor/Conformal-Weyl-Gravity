@@ -1,8 +1,3 @@
-import pathlib
-import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-
 from conformal_probe.core.geometry import component_rng, sample_points
 from bach_receipt import r, th, beta, gam, k, Lam
 
