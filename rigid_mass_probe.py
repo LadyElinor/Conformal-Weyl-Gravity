@@ -120,3 +120,4 @@ if __name__ == '__main__':
     print()
     print(f"RECEIPT SUMMARY: {{'anchor_required_and_gamma_driven': {ok1}, "
           f"'curvature_insensitivity_verified': {ok2}}}")
+    raise SystemExit(0 if ok1 and ok2 else 1)

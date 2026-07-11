@@ -77,7 +77,7 @@ def fact1():
             if v[0] and sp.simplify(v[1].get(0, 0) - 1) == 0]
     ok = bool(phys)
     print(f"    physical branch (SdS-type, constant = +1): a = {phys}")
-    return ok, phys[0]
+    return ok, (phys[0] if phys else None)
 
 
 def fact2(a_val):
@@ -147,17 +147,20 @@ def scaling_report(a_val):
 
 if __name__ == '__main__':
     ok1, branch = fact1()
-    ok2, lead = fact2(branch)
-    scaling_report(branch)
-    gamma_piece = sp.expand(lead).coeff(gam)
-    print()
-    print("READING (qualified per critique 2026-07-10): the leading")
-    print("gamma*r/2 contribution to the FIXED-MASS STATIC-OBSERVER rotation")
-    print("DIAGNOSTIC is frame-dependent under the ansatz-preserving")
-    print("conformal map. This is diagnostic frame-dependence. It does NOT")
-    print("by itself establish that observed galaxy rotation curves are")
-    print("gauge artifacts; that adjudication requires the matter sector")
-    print("(mass generation, clocks, rods, spectral lines).")
-    print()
+    ok2 = False
+    if ok1 and branch is not None:
+        ok2, lead = fact2(branch)
+        scaling_report(branch)
+        gamma_piece = sp.expand(lead).coeff(gam)
+        print()
+        print("READING (qualified per critique 2026-07-10): the leading")
+        print("gamma*r/2 contribution to the FIXED-MASS STATIC-OBSERVER rotation")
+        print("DIAGNOSTIC is frame-dependent under the ansatz-preserving")
+        print("conformal map. This is diagnostic frame-dependence. It does NOT")
+        print("by itself establish that observed galaxy rotation curves are")
+        print("gauge artifacts; that adjudication requires the matter sector")
+        print("(mass generation, clocks, rods, spectral lines).")
+        print()
     print(f"RECEIPT SUMMARY: {{'conformal_map_to_SdS': {ok1}, "
           f"'diagnostic_frame_dependent': {ok2}}}")
+    raise SystemExit(0 if ok1 and ok2 else 1)

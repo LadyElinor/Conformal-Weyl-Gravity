@@ -36,10 +36,12 @@ Bach tensor, taken verbatim from the literature:
     B_ab = 2 * D^m D^n C_{mabn} + C_{mabn} R^{mn}
 
 Sources: arXiv:gr-qc/9811086 eq. (2); arXiv:1105.5632 App. C (Wald
-conventions). Properties tested as implementation checks: symmetric,
-trace-free (verified exactly on a metric with nonzero Bach), conformally
-invariant. Weyl machinery independently checked by annihilation of a
-conformally flat FRW metric with generic scale factor a(t).
+conventions). Properties tested as implementation checks: trace-free
+(verified exactly on a metric with nonzero Bach). Weyl machinery is
+independently checked by annihilation of a conformally flat FRW metric
+with generic scale factor a(t). Symmetry and Bach conformal-invariance
+should be treated here as expected theoretical properties, not yet as
+independently receipted implementation checks.
 
 Conventions: signature (-,+,+,+); Riemann
 R^a_{bcd} = d_c Gamma^a_{bd} - d_d Gamma^a_{bc} + Gamma*Gamma;
@@ -66,7 +68,12 @@ units. Dimension ledger for restoring SI:
     gamma_0/kappa = 3.21e23 cm.
     [B(r)]  = dimensionless
 
-All Bach components as printed carry dimension 1/length^4 in these units.
+Bach components with lowered coordinate indices do not all share the same
+coordinate-basis length dimension. For example, angular covariant
+components carry the expected extra coordinate-basis powers of r. Uniform
+1/length^4 scaling is more naturally associated with orthonormal or
+appropriately normalized components, not every printed covariant
+coordinate component.
 
 ## Files
 
@@ -124,20 +131,21 @@ sharpens one dispute only.
 (1, 3) observable_probe: BUILT (observable_probe.py). Constructs the
 invariant: with m(x) = h*S(x) and S of weight -1, the worldline action
 S*ds is exactly conformally invariant, so physical trajectories are
-geodesics of the invariant mass-frame metric (S/S0)^2 g. In the exact MK
-background the classical conformal scalar EOM is solved exactly by
+geodesics of the invariant mass-frame metric (S/S0)^2 g. On the fixed MK
+background the classical conformal scalar EOM admits
 S = S0/(1 - a_phys r) -- whose mass frame is the SdS-type metric -- and
-is NOT solved by constant S, because dR_MK/dr = 6*gamma*(r - 2*beta)/r^3
-is nonzero in proportion to gamma itself. CONTROLLING CLAIM (canonical phrasing): conformal gravity loses its
-rotation support under the macroscopic classical scalar realization of
-mass generation -- and only under that realization. Conditional verdict:
-under the
-macroscopic classical scalar treatment the invariant rotation observable
-is the SdS diagnostic and the gamma*r/2 support cancels (Horne/HL
-rendered as computation). The disputed premise -- Mannheim's position
-that S is microscopic, varying only within particle interiors -- is
-stated, cited (GRG 54, 99, 2022), and NOT adjudicated. Clocks, rods, and
-spectral-line bookkeeping beyond the worldline level remain future work. (6) greens_probe covers the extended-source question
+does NOT admit constant S, because dR_MK/dr = 6*gamma*(r - 2*beta)/r^3
+is nonzero in proportion to gamma itself. CONTROLLING CLAIM (canonical phrasing): under the macroscopic classical scalar realization of
+mass generation on this fixed background, the invariant rotation
+observable associated with the admitted profile is the SdS diagnostic and
+the gamma*r/2 support cancels. This does NOT yet establish a coupled
+metric-plus-scalar solution, uniqueness of the scalar profile, or source-
+independence of the derived quartic coupling; in the present construction
+lambda depends explicitly on beta. The disputed premise -- Mannheim's
+position that S is microscopic, varying only within particle interiors --
+is stated, cited (GRG 54, 99, 2022), and NOT adjudicated. Clocks, rods,
+and spectral-line bookkeeping beyond the worldline level remain future
+work. (6) greens_probe covers the extended-source question
 (Phillips/Yoon); the frame probe inherits the point-source exterior form.
 (7) lensing_probe: null paths are conformally invariant but observed
 angles, angular-diameter distances, and mass calibrations are not

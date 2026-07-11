@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import random
 from itertools import product
 
@@ -130,9 +131,18 @@ class DiagMetric:
         return raw, sp.simplify(simplify_expr(raw))
 
 
-def sample_points(symbols_in_expr, radial_symbol, polar_symbol, beta_symbol, gamma_symbol, kappa_symbol, lambda_symbol):
-    """Three exact rational sample points for numerical cross-checks."""
-    rng = random.Random(RANDOM_SEED)
+def component_rng(case_id: str, component: tuple[int, int]) -> random.Random:
+    material = f"{RANDOM_SEED}:{case_id}:{component[0]}:{component[1]}"
+    seed = int.from_bytes(hashlib.sha256(material.encode("utf-8")).digest()[:8], "big")
+    return random.Random(seed)
+
+
+def sample_points(symbols_in_expr, radial_symbol, polar_symbol, beta_symbol, gamma_symbol, kappa_symbol, lambda_symbol, *, case_id: str, component: tuple[int, int]):
+    """Three exact rational sample points for numerical cross-checks.
+
+    Sampling is deterministic, component-keyed, and call-order independent.
+    """
+    rng = component_rng(case_id, component)
     points = []
     for _ in range(3):
         substitutions = {
@@ -143,5 +153,8 @@ def sample_points(symbols_in_expr, radial_symbol, polar_symbol, beta_symbol, gam
             kappa_symbol: sp.Rational(rng.randint(1, 9), 10000),
             lambda_symbol: sp.Rational(rng.randint(1, 9), 10000),
         }
-        points.append({symbol: value for symbol, value in substitutions.items() if symbol in symbols_in_expr or symbol in (radial_symbol, polar_symbol)})
+        point = {symbol: value for symbol, value in substitutions.items() if symbol in symbols_in_expr or symbol in (radial_symbol, polar_symbol)}
+        if point[radial_symbol] == 0:
+            continue
+        points.append(point)
     return points

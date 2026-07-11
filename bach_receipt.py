@@ -54,7 +54,7 @@ def run_case(name, gdiag, coords, expect_pass, check_trace=False):
             raw, simp = M.bach(a, b, memo)
             results[(a, b)] = simp
             # Fix 4: exact-point evaluation of the RAW expression
-            for pt in sample_points(all_syms, r, th, beta, gam, k, Lam):
+            for pt in sample_points(all_syms, r, th, beta, gam, k, Lam, case_id=name, component=(a, b)):
                 val = sp.cancel(raw.subs(pt))
                 sym_zero = (simp == 0)
                 num_zero = (val == 0)
@@ -211,3 +211,4 @@ if __name__ == '__main__':
     outcomes = {nm: CASES[nm]() for nm in names}
     print()
     print("RECEIPT SUMMARY:", {nm: bool(v) for nm, v in outcomes.items()})
+    raise SystemExit(0 if all(bool(v) for v in outcomes.values()) else 1)

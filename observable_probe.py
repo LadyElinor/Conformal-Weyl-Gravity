@@ -24,22 +24,28 @@ PART B -- the observable under the two contested scalar profiles.
        =>  ghat = Omega^2 g_MK = SdS-type metric, observable is the SdS
        diagnostic, gamma*r/2 support absent.           [Horne/HL-side]
 
-PART C -- what the classical scalar field equation selects.
+PART C -- what the classical scalar field equation admits and rejects.
 The conformally coupled scalar obeys
     Box S - (R/6) S - 4*lambda*S^3 = 0.
-The probe computes, in the EXACT MK background:
-  (1) whether S = S0/(1 - a*r) is an exact solution (i.e. whether
-      E := Box S - (R/6) S is proportional to S^3 with CONSTANT
-      coefficient, which then fixes lambda);
+The probe computes, on the fixed MK background:
+  (1) whether S = S0/(1 - a*r) solves the scalar equation exactly on that
+      background (i.e. whether E := Box S - (R/6) S is proportional to
+      S^3 with CONSTANT coefficient, which then fixes lambda);
   (2) whether S = S0 constant can solve the equation (it requires
       R_MK to be constant, which the probe tests directly).
 
 VERDICT SHAPE (conditional, per lane discipline):
 IF particle masses track a macroscopic classical scalar solving the
-conformal EOM in this background, THEN the conformally invariant rotation
-observable is the SdS diagnostic and the linear support cancels -- the
-Horne (arXiv:1601.07537) / Hobson-Lasenby (PRD 104, 064014) conclusion,
-rendered as computation.
+conformal EOM in this fixed background, THEN the conformally invariant
+rotation observable associated with the admitted SdS-generating profile is
+that SdS diagnostic and the linear support cancels -- the Horne
+(arXiv:1601.07537) / Hobson-Lasenby (PRD 104, 064014) line, rendered as
+computation under that premise.
+THIS DOES NOT YET ESTABLISH a coupled gravity-matter solution, uniqueness
+of the scalar profile, or frame selection in the stronger physical sense.
+It also does not establish that the required quartic coupling is source-
+independent; in the current fixed-background construction the derived
+lambda depends explicitly on beta.
 THE PREMISE IS THE DISPUTE: Mannheim (GRG 54, 99, 2022) holds that the
 physical S is built from microscopic vacuum expectation values varying
 only within particle interiors, not a macroscopic classical field. That
@@ -123,13 +129,14 @@ def part_c():
     R_is_const = sp.simplify(sp.diff(R_MK, r)) == 0
     const_solves = R_is_const  # constant S solves EOM iff R constant
 
-    print("[PART C] Classical conformal scalar EOM in the exact MK background:")
+    print("[PART C] Classical conformal scalar EOM on the fixed MK background:")
     print(f"    R_MK constant (Einstein-space condition): {R_is_const}")
     print(f"    dR_MK/dr = {sp.simplify(sp.diff(R_MK, r))}")
     print(f"    S = S0 constant solves the EOM: {const_solves}")
     print(f"    S = S0/(1 - a_phys r): (Box S - R S/6)/S^3 = {ratio}")
-    print(f"    ... constant in r (EXACT solution): {is_exact}")
+    print(f"    ... constant in r (exact scalar-EOM solution on this background): {is_exact}")
     print(f"    ... required quartic coupling 4*lambda = {sp.simplify(ratio)}")
+    print(f"    ... beta-dependence of lambda vanishes: {sp.simplify(sp.diff(lam_val, beta)) == 0}")
     return is_exact, const_solves, lam_val
 
 
@@ -139,17 +146,23 @@ if __name__ == '__main__':
     exact_ii, const_ok, lam_val = part_c()
     print()
     print("VERDICT (conditional):")
-    print("  Under the macroscopic classical scalar treatment, the EOM in the")
-    print("  MK background is solved exactly by S = S0/(1 - a_phys r) and is")
-    print("  NOT solved by constant S (since R_MK is not constant). The")
-    print("  conformally invariant rotation observable is therefore the SdS")
-    print("  diagnostic: the gamma*r/2 support cancels. This renders the")
-    print("  Horne / Hobson-Lasenby conclusion as computation.")
+    print("  Under the macroscopic classical scalar treatment, the scalar EOM")
+    print("  on the fixed MK background admits S = S0/(1 - a_phys r) and does")
+    print("  NOT admit constant S (since R_MK is not constant). Under that")
+    print("  premise, the conformally invariant rotation observable associated")
+    print("  with the admitted profile is the SdS diagnostic, so the")
+    print("  gamma*r/2 support cancels in that observable.")
+    print("  This does NOT yet establish a coupled gravity-matter solution,")
+    print("  uniqueness of the scalar profile, or stronger frame selection.")
+    print("  It also does NOT show that the derived quartic coupling is")
+    print("  source-independent: in this fixed-background construction,")
+    print("  lambda depends explicitly on beta.")
     print("  DISPUTED PREMISE (not adjudicated): Mannheim (GRG 54, 99, 2022)")
     print("  denies that the mass-generating S is a macroscopic classical")
     print("  field; microscopic vevs are outside this probe's scope.")
     print()
     print(f"RECEIPT SUMMARY: {{'invariant_structure': {a_ok}, "
           f"'observable_profiles': {b_ok}, "
-          f"'scalar_EOM_selects_SdS_frame': {exact_ii}, "
+          f"'scalar_EOM_admits_SdS_profile_on_fixed_background': {exact_ii}, "
           f"'constant_S_fails_in_MK_frame': {not const_ok}}}")
+    raise SystemExit(0 if a_ok and b_ok and exact_ii and (not const_ok) else 1)
